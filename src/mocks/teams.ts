@@ -42,5 +42,10 @@ export const mockOrganization: Organization = {
     testRuns: 1250,
     storage: 5.2,
     apiCalls: 15000,
+    limits: {
+      testRuns: 10000,
+      storage: 10,
+      apiCalls: 100000,
+    },
   },
 };

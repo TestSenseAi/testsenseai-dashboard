@@ -7,6 +7,8 @@ export function useTeamSettings() {
     ssoEnabled: false,
     allowedDomains: [],
     sessionTimeout: 30,
+    ipRestrictions: false,
+    deviceManagement: false,
   });
 
   const updateSetting = (key: keyof TeamSettings, value: any) => {

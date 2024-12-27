@@ -25,6 +25,11 @@ export interface Organization {
     testRuns: number;
     storage: number;
     apiCalls: number;
+    limits: {
+      testRuns: number;
+      storage: number;
+      apiCalls: number;
+    };
   };
 }
 
@@ -60,6 +65,8 @@ export interface TeamSettings {
   ssoEnabled: boolean;
   allowedDomains: string[];
   sessionTimeout: number;
+  ipRestrictions: boolean;
+  deviceManagement: boolean;
 }
 
 export type TeamActivityFilter = 'all' | 'members' | 'roles' | 'settings';
