@@ -1,5 +1,7 @@
 import { ReactNode } from 'react';
 import { User } from '../types/auth';
+import { TeamMember } from '../types/team';
+import { Organization } from '../types/team';
 
 export type Theme = 'light' | 'dark';
 
@@ -19,6 +21,11 @@ export interface AuthContextType {
   setIsLoading: Function;
   error: string | null;
   setError: Function;
+
+  organization: Organization | null;
+  setOrganization: Function;
+  members: TeamMember[] | null;
+  setMembers: Function;
 }
 
 export interface AuthContextProviderProps {

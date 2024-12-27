@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { Permission, User, UserRole } from '../types/auth';
 import { AuthContextProviderProps, Theme, AuthContextType } from './types';
 import { Box } from '@chakra-ui/react';
+import { Organization, TeamMember } from '../types/team';
 
 const mockedData = {
   user: {
@@ -41,6 +42,9 @@ export const AuthProvider: ({ children }: AuthContextProviderProps) => JSX.Eleme
   const [theme, setTheme] = useState<Theme>('dark');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [organization, setOrganization] = useState<Organization | null>(null);
+  const [members, setMembers] = useState<TeamMember[] | null>(null);
 
   const login = async (email: string, password: string) => {
     if (isAuthenticated) {
@@ -112,6 +116,11 @@ export const AuthProvider: ({ children }: AuthContextProviderProps) => JSX.Eleme
     setError,
     theme,
     setTheme,
+
+    organization,
+    setOrganization,
+    members,
+    setMembers,
   };
 
   return (
