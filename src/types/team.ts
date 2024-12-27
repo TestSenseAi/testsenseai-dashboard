@@ -39,3 +39,27 @@ export interface InviteModalProps {
   onClose: () => void;
   onInvite: (email: string, role: UserRole) => void;
 }
+
+export type TeamActivityType =
+  | 'member-invited'
+  | 'member-removed'
+  | 'role-updated'
+  | 'settings-updated';
+
+export interface TeamActivity {
+  id: string;
+  type: TeamActivityType;
+  description: string;
+  timestamp: string;
+  performedBy: string;
+  metadata?: Record<string, any>;
+}
+
+export interface TeamSettings {
+  require2FA: boolean;
+  ssoEnabled: boolean;
+  allowedDomains: string[];
+  sessionTimeout: number;
+}
+
+export type TeamActivityFilter = 'all' | 'members' | 'roles' | 'settings';
