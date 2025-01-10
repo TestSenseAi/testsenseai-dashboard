@@ -9,10 +9,31 @@ import { useAuthContext } from '../../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 
 const stats: DashboardStat[] = [
-  { icon: Activity, label: 'Total Tests', value: '2,847', change: '+12%' },
-  { icon: CheckCircle, label: 'Pass Rate', value: '94.2%', change: '+2.3%' },
-  { icon: Bug, label: 'Failed Tests', value: '165', change: '-8%' },
-  { icon: Clock, label: 'Avg Duration', value: '2.3s', change: '-0.5s' },
+  {
+    icon: Activity,
+    label: 'Total Tests',
+    value: '2,847',
+    subValue: '+12%',
+    trend: 'up',
+    color: 'blue',
+  },
+  {
+    icon: CheckCircle,
+    label: 'Pass Rate',
+    value: '94.2%',
+    subValue: '+2.3%',
+    trend: 'up',
+    color: 'green',
+  },
+  { icon: Bug, label: 'Failed Tests', value: '165', subValue: '-8%', trend: 'down', color: 'red' },
+  {
+    icon: Clock,
+    label: 'Avg Duration',
+    value: '2.3s',
+    subValue: '-0.5s',
+    trend: 'down',
+    color: 'red',
+  },
 ];
 
 export const Dashboard: FC = () => {
@@ -23,7 +44,7 @@ export const Dashboard: FC = () => {
   }
 
   return (
-    <Container size='xl' px='md'>
+    <Container maxW='100%' data-testid='dashboard-container'>
       <Flex justify='space-between' mb='lg'>
         <Text fontSize='2xl' fontWeight='bold'>
           Dashboard
@@ -33,9 +54,9 @@ export const Dashboard: FC = () => {
         </Button>
       </Flex>
 
-      <Grid>
+      <Grid templateColumns='repeat(4, 1fr)' gap={6} mb={8} data-testid='stats-grid'>
         {stats.map((stat) => (
-          <GridItem key={stat.label} colSpan={{ base: 12, md: 6, lg: 3 }}>
+          <GridItem key={stat.label} w='100%'>
             <StatCard {...stat} />
           </GridItem>
         ))}

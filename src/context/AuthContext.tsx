@@ -1,126 +1,236 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { Permission, User, UserRole } from '../types/auth';
-import { AuthContextProviderProps, Theme, AuthContextType } from './types';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { User, UserRole } from '../types/auth';
+import { AuthContextProviderProps, Theme, AuthContextType, AuthState } from './types';
 import { Box } from '@chakra-ui/react';
 import { Organization, TeamMember } from '../types/team';
+import { addHours, isAfter, isBefore } from 'date-fns';
 
-const mockedData = {
+const SESSION_DURATION = 24; // hours
+const ACTIVITY_TIMEOUT = 30; // minutes
+const TOKEN_REFRESH_INTERVAL = 15; // minutes
+
+const initialState: AuthState = {
+  user: null,
+  token: null,
+  isAuthenticated: false,
+  isLoading: true,
+  error: null,
+  theme: 'dark',
+  organization: null,
+  members: null,
+};
+
+const mockedData: AuthContextType = {
   user: {
     id: '1',
-    username: 'test',
     email: 'test@test.com',
     name: 'Test User',
-    role: UserRole.Admin,
+    role: 'admin' as UserRole,
     permissions: [
-      Permission.CreateTest,
-      Permission.EditTest,
-      Permission.DeleteTest,
-      Permission.RunTest,
-      Permission.ViewReports,
-      Permission.ManageUsers,
-      Permission.ManageSettings,
+      'create:test',
+      'edit:test',
+      'delete:test',
+      'run:test',
+      'view:reports',
+      'manage:users',
+      'manage:settings',
     ],
   },
   token: 'mock-token',
   isAuthenticated: true,
+  isLoading: false,
+  error: null,
+  theme: 'dark',
+  organization: null,
+  members: null,
+  sessionExpiry: new Date().toISOString(),
+  lastActivity: new Date().toISOString(),
+  login: async () => {},
+  logout: () => {},
+  refreshToken: async () => {},
+  updateUser: () => {},
+  setTheme: () => {},
+  setOrganization: () => {},
+  setMembers: () => {},
+  clearError: () => {},
+  checkSession: () => true,
+  extendSession: () => {},
 };
-
-export interface LoginResponseProps {
-  user: User;
-  token: string;
-  isAuthenticated: boolean;
-}
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider: ({ children }: AuthContextProviderProps) => JSX.Element = ({
-  children,
-}: AuthContextProviderProps) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [theme, setTheme] = useState<Theme>('dark');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+export const AuthProvider = ({ children }: AuthContextProviderProps) => {
+  const [state, setState] = useState<AuthState>(initialState);
+  const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
 
-  const [organization, setOrganization] = useState<Organization | null>(null);
-  const [members, setMembers] = useState<TeamMember[] | null>(null);
+  const updateState = (updates: Partial<AuthState>) => {
+    setState((prev) => ({ ...prev, ...updates }));
+  };
+
+  const clearError = useCallback(() => {
+    updateState({ error: null });
+  }, []);
 
   const login = async (email: string, password: string) => {
-    if (isAuthenticated) {
+    if (!email || !password) {
+      updateState({ error: 'Email and password are required' });
       return;
     }
-    setIsLoading(true);
-    setError(null);
+    if (state.isAuthenticated) return;
+
+    updateState({ isLoading: true, error: null });
+
     try {
-      // Simulate API call with axios and return mockedData
-      const response: LoginResponseProps = await new Promise((resolve) => {
+      // Simulate API call
+      const response = await new Promise<typeof mockedData>((resolve) => {
         setTimeout(() => resolve(mockedData), 1000);
       });
-      console.log('email', email);
-      console.log('password', password);
-      setUser(response.user);
-      setToken(response.token);
-      setIsAuthenticated(response.isAuthenticated);
+
+      const sessionExpiry = addHours(new Date(), SESSION_DURATION).toISOString();
+
+      updateState({
+        user: response.user,
+        token: response.token,
+        isAuthenticated: true,
+        sessionExpiry,
+        lastActivity: new Date().toISOString(),
+      });
+
+      localStorage.setItem('token', response.token ?? '');
+      localStorage.setItem('sessionExpiry', sessionExpiry);
+
+      startRefreshInterval();
     } catch (error) {
-      console.error('Login failed', error);
+      updateState({
+        error: error instanceof Error ? error.message : 'Login failed',
+      });
     } finally {
-      setIsLoading(false);
+      updateState({ isLoading: false });
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    setIsAuthenticated(false);
-  };
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('sessionExpiry');
+    if (refreshInterval) {
+      clearInterval(refreshInterval);
+      setRefreshInterval(null);
+    }
+    setState(initialState);
+  }, [refreshInterval]);
 
   const refreshToken = async () => {
-    if (token) {
-      return;
+    if (!state.token) return;
+
+    try {
+      // Simulate token refresh
+      const newToken = `${state.token}-refreshed`;
+      updateState({ token: newToken });
+      localStorage.setItem('token', newToken);
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      logout();
     }
   };
+
+  const startRefreshInterval = useCallback(() => {
+    if (refreshInterval) {
+      clearInterval(refreshInterval);
+    }
+    const interval = setInterval(refreshToken, TOKEN_REFRESH_INTERVAL * 60 * 1000);
+    setRefreshInterval(interval);
+  }, [refreshInterval]);
+
+  const checkSession = useCallback(() => {
+    if (!state.sessionExpiry) return false;
+
+    const now = new Date();
+    const expiry = new Date(state.sessionExpiry);
+    const lastActivity = state.lastActivity ? new Date(state.lastActivity) : now;
+    const activityTimeout = addHours(lastActivity, ACTIVITY_TIMEOUT / 60);
+
+    if (isAfter(now, expiry) || isAfter(now, activityTimeout)) {
+      logout();
+      return false;
+    }
+
+    return true;
+  }, [state.sessionExpiry, state.lastActivity, logout]);
+
+  const extendSession = useCallback(() => {
+    if (!state.isAuthenticated) return;
+
+    const newExpiry = addHours(new Date(), SESSION_DURATION).toISOString();
+    updateState({
+      sessionExpiry: newExpiry,
+      lastActivity: new Date().toISOString(),
+    });
+    localStorage.setItem('sessionExpiry', newExpiry);
+  }, [state.isAuthenticated]);
+
+  const updateUser = useCallback(
+    (userData: Partial<User>) => {
+      if (!state.user) return;
+      updateState({
+        user: { ...state.user, ...userData },
+      });
+    },
+    [state.user]
+  );
 
   useEffect(() => {
     const checkAuth = async () => {
       const storedToken = localStorage.getItem('token');
-      if (storedToken) {
-        try {
-          setToken(storedToken);
-          setUser(mockedData.user);
-          setIsAuthenticated(true);
-        } catch (error) {
-          console.error('Token validation failed', error);
+      const storedExpiry = localStorage.getItem('sessionExpiry');
+
+      if (storedToken && storedExpiry) {
+        const now = new Date();
+        const expiry = new Date(storedExpiry);
+
+        if (isBefore(now, expiry)) {
+          try {
+            updateState({
+              token: storedToken,
+              user: mockedData.user,
+              isAuthenticated: true,
+              sessionExpiry: storedExpiry,
+            });
+            startRefreshInterval();
+          } catch (error) {
+            console.error('Token validation failed:', error);
+            localStorage.removeItem('token');
+            localStorage.removeItem('sessionExpiry');
+          }
+        } else {
           localStorage.removeItem('token');
+          localStorage.removeItem('sessionExpiry');
         }
       }
-      setIsLoading(false);
+
+      updateState({ isLoading: false });
     };
 
     checkAuth();
-  }, []);
+
+    return () => {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
+    };
+  }, [startRefreshInterval, refreshInterval]);
 
   const authContext: AuthContextType = {
-    user,
-    setUser,
-    token,
-    setToken,
+    ...state,
     login,
     logout,
-    isAuthenticated,
-    setIsAuthenticated,
     refreshToken,
-    isLoading,
-    setIsLoading,
-    error,
-    setError,
-    theme,
-    setTheme,
-
-    organization,
-    setOrganization,
-    members,
-    setMembers,
+    updateUser,
+    setTheme: (theme: Theme) => updateState({ theme }),
+    setOrganization: (organization: Organization | null) => updateState({ organization }),
+    setMembers: (members: TeamMember[] | null) => updateState({ members }),
+    clearError,
+    checkSession,
+    extendSession,
   };
 
   return (

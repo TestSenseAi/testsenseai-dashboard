@@ -1,15 +1,17 @@
-import { Box, Flex } from '@chakra-ui/react';
+import { Box, Flex, useColorMode } from '@chakra-ui/react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 
-export default function Layout() {
+export function Layout() {
+  const { colorMode } = useColorMode();
+
   return (
-    <Flex h="100vh">
+    <Flex minH='100vh' bg={colorMode === 'dark' ? 'gray.800' : 'gray.50'}>
       <Sidebar />
-      <Box flex="1" overflow="auto">
+      <Box flex='1' ml='64px'>
         <Header />
-        <Box as="main" p={6}>
+        <Box as='main' p={8}>
           <Outlet />
         </Box>
       </Box>

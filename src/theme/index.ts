@@ -22,7 +22,7 @@ const colors = {
 
 const theme = extendTheme({
   config,
-  colors,
+  colors, 
   styles: {
     global: (props: any) => ({
       body: {

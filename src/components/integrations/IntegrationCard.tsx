@@ -10,15 +10,9 @@ import {
   Text,
   useDisclosure,
 } from '@chakra-ui/react';
-import { Integration } from '../../types/integration';
 import { ConnectionStatus } from './ConnectionStatus';
 import { IntegrationForm } from './IntegrationForm';
-
-interface IntegrationCardProps {
-  integration: Integration;
-  onToggle: (id: string, enabled: boolean) => void;
-  onUpdate: (id: string, config: Record<string, string>) => void;
-}
+import { IntegrationCardProps } from '../../types/integration';
 
 export function IntegrationCard({ integration, onToggle, onUpdate }: IntegrationCardProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();

@@ -1,22 +1,28 @@
 export type TestStatus = 'pending' | 'running' | 'passed' | 'failed';
-export type TestType = 'ui' | 'visual' | 'accessibility' | 'api';
+export type TestType = 'ui' | 'api' | 'visual' | 'accessibility';
 
-export interface TestCase {
+export interface TestResult {
   id: string;
-  name: string;
-  description: string;
-  type: TestType;
   status: TestStatus;
-  component?: string;
-  steps: TestStep[];
-  assertions: TestAssertion[];
-  metadata: {
-    author: string;
-    created: string;
-    modified: string;
-    source: 'manual' | 'ai-generated';
-    figmaComponentId?: string;
+  duration: number;
+  startTime: string;
+  endTime?: string;
+  assertions: {
+    total: number;
+    passed: number;
+    failed: number;
   };
+  screenshots?: string[];
+  logs?: string;
+  stepResults: Record<
+    string,
+    {
+      passed: boolean;
+      duration: number;
+      error?: string;
+      screenshot?: string;
+    }
+  >;
 }
 
 export interface TestStep {
@@ -27,29 +33,24 @@ export interface TestStep {
   screenshot?: boolean;
 }
 
-export interface TestAssertion {
+export interface TestCase {
   id: string;
-  type: 'element' | 'state' | 'visual' | 'accessibility';
-  condition: string;
-  expected: unknown;
-}
-
-export interface TestRun {
-  id: string;
-  status: TestStatus;
-  startTime: string;
-  endTime?: string;
-  duration?: number;
-  tests: TestResult[];
-}
-
-export interface TestResult {
-  testId: string;
-  status: TestStatus;
-  duration: number;
-  error?: {
-    message: string;
-    stack?: string;
-    screenshot?: string;
+  name: string;
+  description: string;
+  type: TestType;
+  steps: TestStep[];
+  assertions: Array<{
+    id: string;
+    type: 'element' | 'state' | 'visual' | 'accessibility';
+    condition: string;
+    expected: unknown;
+  }>;
+  metadata: {
+    author: string;
+    created: string;
+    modified: string;
+    source: 'manual' | 'ai-generated';
+    lastRun?: string;
+    lastStatus?: 'passed' | 'failed' | 'pending';
   };
 }

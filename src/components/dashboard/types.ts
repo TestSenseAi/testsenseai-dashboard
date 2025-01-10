@@ -4,7 +4,9 @@ export interface DashboardStat {
   icon: LucideIcon;
   label: string;
   value: string;
-  change: string;
+  subValue: string;
+  trend: 'up' | 'down';
+  color: string;
 }
 
 export interface TestRun {

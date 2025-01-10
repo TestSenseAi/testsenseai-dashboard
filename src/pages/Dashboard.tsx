@@ -1,25 +1,28 @@
-import { Grid, GridItem } from '@chakra-ui/react';
+import { Grid, GridItem, Container, Button, HStack } from '@chakra-ui/react';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { TestMetrics } from '../components/dashboard/TestMetrics';
 import { TestTrends } from '../components/dashboard/TestTrends';
 import { RecentActivity } from '../components/dashboard/RecentActivity';
-import { AIRecommendations } from '../components/dashboard/AIRecommendations';
+import { AIInsights } from '../components/dashboard/AIInsights';
+import { Download } from 'lucide-react';
 
 export default function Dashboard() {
+  const handleExportReport = () => {
+    console.log('Exporting report...');
+  };
+
   return (
-    <>
-      <DashboardHeader />
-      <Grid
-        templateColumns={{ base: 'repeat(1, 1fr)', md: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }}
-        gap={6}
-        mb={8}
-      >
-        <TestMetrics />
-      </Grid>
-      <Grid
-        templateColumns={{ base: 'repeat(1, 1fr)', lg: 'repeat(2, 1fr)' }}
-        gap={6}
-      >
+    <Container maxW='container.xl' py={8}>
+      <HStack justify='space-between' mb={8}>
+        <DashboardHeader />
+        <Button leftIcon={<Download size={20} />} variant='outline' onClick={handleExportReport}>
+          Export Report
+        </Button>
+      </HStack>
+
+      <TestMetrics />
+
+      <Grid templateColumns={{ base: 'repeat(1, 1fr)', lg: 'repeat(2, 1fr)' }} gap={6} mt={8}>
         <GridItem>
           <TestTrends />
         </GridItem>
@@ -27,9 +30,9 @@ export default function Dashboard() {
           <RecentActivity />
         </GridItem>
         <GridItem colSpan={{ base: 1, lg: 2 }}>
-          <AIRecommendations />
+          <AIInsights />
         </GridItem>
       </Grid>
-    </>
+    </Container>
   );
 }

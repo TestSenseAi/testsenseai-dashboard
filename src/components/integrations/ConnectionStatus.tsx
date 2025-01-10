@@ -13,20 +13,21 @@ export function ConnectionStatus({ status, error }: ConnectionStatusProps) {
     error: { color: 'red', icon: AlertTriangle, text: 'Error' },
   };
 
-  const config = statusConfig[status];
+  const Icon = statusConfig[status].icon;
+  const Text = statusConfig[status].text;
 
   return (
-    <Tooltip label={error} isDisabled={!error}>
+    <Tooltip label={error || ''} isDisabled={!error}>
       <Badge
         display='flex'
         alignItems='center'
         gap={2}
-        colorScheme={config.color}
+        colorScheme={statusConfig[status].color}
         px={2}
         py={1}
         borderRadius='full'>
-        <config.icon size={14} />
-        {config.text}
+        <Icon size={14} />
+        <span className='text-sm'>{Text}</span>
       </Badge>
     </Tooltip>
   );

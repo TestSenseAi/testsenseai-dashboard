@@ -5,27 +5,30 @@ import { Organization } from '../types/team';
 
 export type Theme = 'light' | 'dark';
 
-export interface AuthContextType {
+export interface AuthState {
   user: User | null;
-  setUser: Function;
   token: string | null;
-  setToken: Function;
-  login: (username: string, password: string) => Promise<void>;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  theme: Theme;
+  organization: Organization | null;
+  members: TeamMember[] | null;
+  sessionExpiry?: string;
+  lastActivity?: string;
+}
+
+export interface AuthContextType extends AuthState {
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   refreshToken: () => Promise<void>;
-  isAuthenticated: boolean;
-  setIsAuthenticated: Function;
-  theme: Theme;
-  setTheme: Function;
-  isLoading: boolean;
-  setIsLoading: Function;
-  error: string | null;
-  setError: Function;
-
-  organization: Organization | null;
-  setOrganization: Function;
-  members: TeamMember[] | null;
-  setMembers: Function;
+  updateUser: (userData: Partial<User>) => void;
+  setTheme: (theme: Theme) => void;
+  setOrganization: (org: Organization | null) => void;
+  setMembers: (members: TeamMember[] | null) => void;
+  clearError: () => void;
+  checkSession: () => boolean;
+  extendSession: () => void;
 }
 
 export interface AuthContextProviderProps {

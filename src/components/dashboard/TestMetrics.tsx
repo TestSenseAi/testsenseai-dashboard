@@ -7,33 +7,37 @@ export function TestMetrics() {
   const metrics = useTestMetrics();
 
   return (
-    <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6}>
+    <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} data-testid='test-metrics-grid'>
       <MetricCard
         icon={Activity}
-        label="Total Tests"
+        label='Total Tests'
         value={metrics.totalTests}
         change={metrics.totalTestsChange}
+        dataTestId='total-tests-metric'
       />
       <MetricCard
         icon={CheckCircle2}
-        label="Pass Rate"
+        label='Pass Rate'
         value={metrics.passRate}
         change={metrics.passRateChange}
-        format="percentage"
+        format='percentage'
+        dataTestId='pass-rate-metric'
       />
       <MetricCard
         icon={AlertCircle}
-        label="Failed Tests"
+        label='Failed Tests'
         value={metrics.failedTests}
         change={metrics.failedTestsChange}
-        changeDirection="inverse"
+        changeDirection='inverse'
+        dataTestId='failed-tests-metric'
       />
       <MetricCard
         icon={Clock}
-        label="Avg Duration"
+        label='Avg Duration'
         value={metrics.avgDuration}
         change={metrics.avgDurationChange}
-        format="duration"
+        format='duration'
+        dataTestId='avg-duration-metric'
       />
     </SimpleGrid>
   );

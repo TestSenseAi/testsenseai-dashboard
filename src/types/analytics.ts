@@ -1,45 +1,40 @@
-export interface CoverageData {
+export type DateRange = '7d' | '30d' | '90d' | '1y';
+
+export interface CoverageChartData {
+  date: string;
+  percentage: number;
+}
+
+export interface CoverageMetricsData {
   total: number;
-  covered: number;
+  trend: number;
+  ui: number;
+  api: number;
+  e2e: number;
+}
+
+export interface CoverageData {
   percentage: number;
   byType: {
     ui: number;
     api: number;
     visual: number;
-    accessibility: number;
   };
-  byComponent: Array<{
-    name: string;
-    coverage: number;
-    risk: 'low' | 'medium' | 'high';
-  }>;
-  trend: Array<{
-    date: string;
-    coverage: number;
-  }>;
+  trend: { date: string; coverage: number }[];
 }
 
-export interface TestDuration {
-  average: number;
-  byType: {
-    ui: number;
-    api: number;
-    visual: number;
-    accessibility: number;
-  };
-  trend: Array<{
-    date: string;
-    duration: number;
-  }>;
+export interface TestResult {
+  id: string;
+  name: string;
+  status: 'passed' | 'failed' | 'skipped';
+  duration: number;
+  timestamp: string;
 }
 
-export interface RiskAssessment {
-  score: number;
-  level: 'low' | 'medium' | 'high';
-  factors: Array<{
-    name: string;
-    impact: number;
-    description: string;
-  }>;
-  recommendations: string[];
+export interface TestMetrics {
+  total: number;
+  passed: number;
+  failed: number;
+  skipped: number;
+  avgDuration: number;
 }

@@ -25,3 +25,9 @@ export interface IntegrationConfig {
     description?: string;
   }[];
 }
+
+export interface IntegrationCardProps {
+  integration: Integration;
+  onToggle: (id: string, enabled: boolean) => void;
+  onUpdate: (id: string, config: Record<string, string>) => void;
+}

@@ -1,31 +1,48 @@
+import { z } from 'zod';
+
 export interface User {
   id: string;
-  username: string;
   email: string;
   name: string;
   role: UserRole;
   permissions: Permission[];
+  lastLogin?: string;
+  preferences?: UserPreferences;
 }
 
-// Assuming UserRole is an enum
-export enum UserRole {
-  Admin = 'admin',
-  User = 'user',
-  // Add other roles as needed
+export interface UserPreferences {
+  theme: 'light' | 'dark' | 'system';
+  notifications: boolean;
+  timezone: string;
 }
 
-export enum Permission {
-  CreateTest = 'create:test',
-  EditTest = 'edit:test',
-  DeleteTest = 'delete:test',
-  RunTest = 'run:test',
-  ViewReports = 'view:reports',
-  ManageUsers = 'manage:users',
-  ManageSettings = 'manage:settings',
-}
+export type UserRole = 'admin' | 'manager' | 'tester' | 'viewer';
+
+export type Permission =
+  | 'create:test'
+  | 'edit:test'
+  | 'delete:test'
+  | 'run:test'
+  | 'view:reports'
+  | 'manage:users'
+  | 'manage:settings'
+  | 'manage:projects';
 
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   token: string | null;
+  sessionExpiry?: string;
+  loginAttempts: number;
+  isLocked: boolean;
+  lockUntil?: string;
 }
+
+// Validation schemas
+export const loginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  rememberMe: z.boolean().optional(),
+});
+
+export type LoginFormData = z.infer<typeof loginSchema>;
