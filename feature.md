@@ -5,7 +5,7 @@
 ### 1. Data Versioning System
 
 **Estimate:** 2 weeks
-**Assignee:** @csarmientocj
+**Assignee:** csarmientocj
 **Labels:** enhancement, data-management
 
 Implement comprehensive test data versioning system.
@@ -27,7 +27,7 @@ Implement comprehensive test data versioning system.
 ### 2. Data Generation Framework
 
 **Estimate:** 3 weeks
-**Assignee:** @csarmientocj
+**Assignee:** csarmientocj
 **Labels:** feature, data-generation
 
 Build intelligent test data generation system.
@@ -51,7 +51,7 @@ Build intelligent test data generation system.
 ### 1. Distributed Test Runner
 
 **Estimate:** 3 weeks
-**Assignee:** @csarmientocj
+**Assignee:** csarmientocj
 **Labels:** feature, test-execution
 
 Implement distributed test execution system.
@@ -73,7 +73,7 @@ Implement distributed test execution system.
 ### 2. Cross-browser Matrix System
 
 **Estimate:** 2 weeks
-**Assignee:** @csarmientocj
+**Assignee:** csarmientocj
 **Labels:** feature, browser-testing
 
 Build comprehensive cross-browser testing system.
@@ -97,7 +97,7 @@ Build comprehensive cross-browser testing system.
 ### 1. Smart Test Generation
 
 **Estimate:** 3 weeks
-**Assignee:** @csarmientocj
+**Assignee:** csarmientocj
 **Labels:** feature, ai-ml
 
 Enhance AI-powered test generation capabilities.
@@ -119,7 +119,7 @@ Enhance AI-powered test generation capabilities.
 ### 2. Visual Test Maintenance
 
 **Estimate:** 2 weeks
-**Assignee:** @csarmientocj
+**Assignee:** csarmientocj
 **Labels:** feature, visual-testing
 
 Implement AI-powered visual test maintenance.
@@ -143,7 +143,7 @@ Implement AI-powered visual test maintenance.
 ### 1. Real-time Collaboration
 
 **Estimate:** 2 weeks
-**Assignee:** @csarmientocj
+**Assignee:** csarmientocj
 **Labels:** feature, collaboration
 
 Implement real-time collaboration features.
@@ -165,7 +165,7 @@ Implement real-time collaboration features.
 ### 2. Knowledge Management
 
 **Estimate:** 2 weeks
-**Assignee:** @csarmientocj
+**Assignee:** csarmientocj
 **Labels:** feature, documentation
 
 Build comprehensive knowledge management system.
@@ -189,7 +189,7 @@ Build comprehensive knowledge management system.
 ### 1. Advanced Security Framework
 
 **Estimate:** 3 weeks
-**Assignee:** @csarmientocj
+**Assignee:** csarmientocj
 **Labels:** feature, security
 
 Implement comprehensive security framework.
@@ -211,7 +211,7 @@ Implement comprehensive security framework.
 ### 2. Compliance Management
 
 **Estimate:** 2 weeks
-**Assignee:** @csarmientocj
+**Assignee:** csarmientocj
 **Labels:** feature, compliance
 
 Build compliance management system.
@@ -235,7 +235,7 @@ Build compliance management system.
 ### 1. Advanced Analytics Engine
 
 **Estimate:** 3 weeks
-**Assignee:** @csarmientocj
+**Assignee:** csarmientocj
 **Labels:** feature, analytics
 
 Implement comprehensive analytics system.
@@ -257,7 +257,7 @@ Implement comprehensive analytics system.
 ### 2. Custom Report Builder
 
 **Estimate:** 2 weeks
-**Assignee:** @csarmientocj
+**Assignee:** csarmientocj
 **Labels:** feature, reporting
 
 Build flexible report generation system.

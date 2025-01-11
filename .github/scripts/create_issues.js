@@ -22,7 +22,7 @@ async function main() {
 
   // Validate tasks array
   if (!Array.isArray(tasks) || tasks.length === 0) {
-    throw new Error('No valid tasks found in implementation plan');
+    throw new Error('No valid tasks found in feature plan');
   }
 
   for (const task of tasks) {
