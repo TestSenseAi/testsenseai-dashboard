@@ -1,52 +1,27 @@
-name: Create Issues from Features
+name: Create Project Issues
 
 on:
   workflow_dispatch:
-    inputs:
-      milestone:
-        description: 'Milestone to associate tickets with'
-        required: true
 
 permissions:
   contents: read
   issues: write
-  discussions: write
-  actions: write
 
 jobs:
   create-issues:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Create Issues
-        uses: actions/github-script@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { Octokit } = require('@octokit/rest');
-            const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-            const response = await octokit.rest.issues.create({
-              owner: 'your-username',
-              repo: 'your-repo',
-              title: 'New Issue',
-              body: 'This is a new issue',
-            });
-            console.log(response);
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: '**/node_modules'
 
-      - name: Install Dependencies
-        run: |
-          npm install @actions/core @actions/github gray-matter markdown-table
-          npm install -g node-fetch
+      - name: Install dependencies
+        run: npm install @actions/core @actions/github gray-matter markdown-table
 
-      - name: Parse features and Create Issues
+      - name: Create Issues
+        run: node .github/scripts/create_issues.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          node .github/scripts/create_issues.js
