@@ -32,4 +32,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FEATURES_DIRECTORY: ${{ github.event.inputs.features_directory }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
-        run: node .github/actions/process-features/index.js
+        run: node .github/actions/processFeatures/index.js
