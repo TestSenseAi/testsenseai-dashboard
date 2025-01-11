@@ -5,92 +5,153 @@ import github from '@actions/github';
 import matter from 'gray-matter';
 
 async function main() {
-  // Get inputs from the GitHub Action
-  const featureFile = core.getInput('feature_file') || 'mvp_features.md';
-  const createMilestone = core.getInput('create_milestone') === 'true';
-  const labelPrefix = core.getInput('label_prefix') || '';
-  const dryRun = core.getInput('dry_run') === 'true';
-
   const token = process.env.GITHUB_TOKEN;
   const octokit = github.getOctokit(token);
   const { owner, repo } = github.context.repo;
 
-  console.log(`Processing feature file: ${featureFile}`);
-  console.log(`Create milestones: ${createMilestone}`);
-  console.log(`Label prefix: ${labelPrefix}`);
-  console.log(`Dry run: ${dryRun}`);
+  // Get all .md files from the features directory
+  const featuresDir = core.getInput('features_directory') || './features';
+  const processedStateFile = path.join(featuresDir, '.processed-features.json');
 
-  // Read and validate the feature file
-  const filePath = path.join(process.cwd(), featureFile);
-  let fileContent;
+  console.log(`Scanning directory: ${featuresDir}`);
+
+  // Load processed features state
+  let processedFeatures = {};
   try {
-    fileContent = fs.readFileSync(filePath, 'utf8');
-  } catch (error) {
-    core.setFailed(`Failed to read file at ${filePath}: ${error.message}`);
-    return;
-  }
-
-  // Parse the markdown content with enhanced error handling
-  let tasks;
-  try {
-    tasks = parseFeaturePlan(fileContent);
-    validateTasks(tasks);
-  } catch (error) {
-    core.setFailed(`Failed to parse feature plan: ${error.message}`);
-    return;
-  }
-
-  // Create milestones if requested
-  const milestoneMap = new Map();
-  if (createMilestone) {
-    for (const task of tasks) {
-      const milestone = task.sprint?.split('-')[0]; // Extract milestone from sprint (e.g., "M1" from "M1-Sprint1")
-      if (milestone && !milestoneMap.has(milestone)) {
-        try {
-          const response = await createMilestoneIfNotExists(octokit, owner, repo, milestone);
-          milestoneMap.set(milestone, response.data.number);
-        } catch (error) {
-          console.warn(`Warning: Failed to create milestone ${milestone}: ${error.message}`);
-        }
-      }
+    if (fs.existsSync(processedStateFile)) {
+      processedFeatures = JSON.parse(fs.readFileSync(processedStateFile, 'utf8'));
     }
+  } catch (error) {
+    console.warn('No existing processed features state found. Starting fresh.');
   }
 
-  // Process each task
-  for (const task of tasks) {
-    const issueTitle = formatIssueTitle(task);
-    const issueBody = formatIssueBody(task);
-    const labels = formatLabels(task, labelPrefix);
+  // Get all markdown files
+  const featureFiles = fs
+    .readdirSync(featuresDir)
+    .filter((file) => file.endsWith('.md') && file !== '.processed-features.json');
 
-    // Get milestone number if applicable
-    const milestone = task.sprint?.split('-')[0];
-    const milestoneNumber = milestone ? milestoneMap.get(milestone) : undefined;
+  console.log(`Found ${featureFiles.length} feature files to process`);
 
-    if (dryRun) {
-      console.log('\n=== Dry Run Output ===');
-      console.log('Title:', issueTitle);
-      console.log('Labels:', labels);
-      console.log('Milestone:', milestone);
-      console.log('Body:', issueBody);
+  // Get existing issues to avoid duplicates
+  const existingIssues = await getExistingIssues(octokit, owner, repo);
+  const existingTitles = new Set(existingIssues.map((issue) => issue.title));
+
+  for (const file of featureFiles) {
+    const filePath = path.join(featuresDir, file);
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const fileHash = calculateFileHash(fileContent);
+
+    // Check if file has been processed and hasn't changed
+    if (processedFeatures[file] && processedFeatures[file].hash === fileHash) {
+      console.log(`Skipping ${file} - no changes detected`);
       continue;
     }
 
-    try {
-      const response = await octokit.rest.issues.create({
-        owner,
-        repo,
-        title: issueTitle,
-        body: issueBody,
-        labels,
-        assignees: task.assignees,
-        milestone: milestoneNumber,
-      });
-      console.log(`Created issue: ${issueTitle} (#${response.data.number})`);
-    } catch (error) {
-      console.error(`Error creating issue: ${issueTitle}`);
-      console.error(error);
+    console.log(`Processing ${file}...`);
+    const tasks = parseFeaturePlan(fileContent);
+
+    // Track newly created issues for this file
+    const createdIssues = [];
+
+    for (const task of tasks) {
+      const issueTitle = formatIssueTitle(task);
+
+      // Skip if issue already exists
+      if (existingTitles.has(issueTitle)) {
+        console.log(`Skipping existing issue: ${issueTitle}`);
+        continue;
+      }
+
+      try {
+        const issue = await createIssue(octokit, owner, repo, task);
+        createdIssues.push({
+          title: issueTitle,
+          number: issue.number,
+          id: issue.id,
+        });
+        console.log(`Created issue: ${issueTitle} (#${issue.number})`);
+      } catch (error) {
+        console.error(`Error creating issue: ${issueTitle}`, error);
+      }
     }
+
+    // Update processed state for this file
+    processedFeatures[file] = {
+      hash: fileHash,
+      lastProcessed: new Date().toISOString(),
+      createdIssues: createdIssues,
+    };
   }
+
+  // Save processed state
+  fs.writeFileSync(processedStateFile, JSON.stringify(processedFeatures, null, 2));
+
+  // Add processed state file to git if it's new or modified
+  try {
+    await octokit.rest.repos.createOrUpdateFileContents({
+      owner,
+      repo,
+      path: '.processed-features.json',
+      message: 'Update processed features state',
+      content: Buffer.from(JSON.stringify(processedFeatures, null, 2)).toString('base64'),
+      sha: await getFileSha(octokit, owner, repo, '.processed-features.json'),
+    });
+  } catch (error) {
+    console.warn('Failed to update processed features state in repository', error);
+  }
+}
+
+async function getExistingIssues(octokit, owner, repo) {
+  const issues = [];
+  let page = 1;
+
+  while (true) {
+    const response = await octokit.rest.issues.listForRepo({
+      owner,
+      repo,
+      state: 'all',
+      per_page: 100,
+      page,
+    });
+
+    if (response.data.length === 0) break;
+    issues.push(...response.data);
+    page++;
+  }
+
+  return issues;
+}
+
+function calculateFileHash(content) {
+  const crypto = require('crypto');
+  return crypto.createHash('sha256').update(content).digest('hex');
+}
+
+async function getFileSha(octokit, owner, repo, path) {
+  try {
+    const response = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path,
+    });
+    return response.data.sha;
+  } catch (error) {
+    if (error.status === 404) return null;
+    throw error;
+  }
+}
+
+async function createIssue(octokit, owner, repo, task) {
+  const response = await octokit.rest.issues.create({
+    owner,
+    repo,
+    title: formatIssueTitle(task),
+    body: formatIssueBody(task),
+    labels: task.labels,
+    assignees: task.assignees,
+  });
+
+  return response.data;
 }
 
 function parseFeaturePlan(content) {

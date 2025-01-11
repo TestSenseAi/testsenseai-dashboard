@@ -1,0 +1,35 @@
+name: Process Feature Files
+
+on:
+  workflow_dispatch:
+    inputs:
+      features_directory:
+        description: 'Directory containing feature files'
+        required: false
+        default: '../.github/features'
+      dry_run:
+        description: 'Dry run (no issues created)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  process-features:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install Dependencies
+        run: npm install @actions/core @actions/github gray-matter
+
+      - name: Process Features
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FEATURES_DIRECTORY: ${{ github.event.inputs.features_directory }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: node .github/actions/process-features/index.js
