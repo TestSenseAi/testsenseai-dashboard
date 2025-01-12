@@ -10,7 +10,7 @@ async function main() {
   const { owner, repo } = github.context.repo;
 
   // Get all .md files from the features directory
-  const featuresDir = core.getInput('features_directory') || '../.github/features';
+  const featuresDir = core.getInput('features_directory') || './.github/features';
   const processedStateFile = path.join(featuresDir, '.processed-features.json');
 
   console.log(`Scanning directory: ${featuresDir}`);
