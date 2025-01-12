@@ -3,6 +3,7 @@ import path from 'path';
 import core from '@actions/core';
 import github from '@actions/github';
 import matter from 'gray-matter';
+import crypto from 'crypto';
 
 async function main() {
   const token = process.env.GITHUB_TOKEN;
@@ -123,7 +124,6 @@ async function getExistingIssues(octokit, owner, repo) {
 }
 
 function calculateFileHash(content) {
-  const crypto = require('crypto');
   return crypto.createHash('sha256').update(content).digest('hex');
 }
 
